@@ -13,11 +13,16 @@ Automatically reserves parking spots at Alta Ski Area every week for Saturday an
 
 ## Prerequisites
 
-- macOS (or any system with Python 3.7+)
+- Windows, macOS, or Linux with Python 3.7+
 - Internet connection
 - Alta parking account
 
-## Installation
+## Platform-Specific Guides
+
+- **Windows Users:** See [WINDOWS_SETUP.md](WINDOWS_SETUP.md) for complete Windows instructions
+- **macOS/Linux Users:** Continue with the instructions below
+
+## Installation (macOS/Linux)
 
 ### 1. Install Python (if not already installed)
 
@@ -96,9 +101,12 @@ This runs headless (no visible browser) and completes the reservation automatica
 
 ## Automated Scheduling
 
-To run the bot automatically every Sunday at 3pm MST, we'll use `cron` on your Mac.
+To run the bot automatically every Sunday at 3pm MST:
 
-### Option 1: Using cron (Recommended)
+- **Windows:** Run `setup_scheduler.bat` as Administrator (see [WINDOWS_SETUP.md](WINDOWS_SETUP.md))
+- **macOS/Linux:** Use the instructions below
+
+### macOS/Linux: Using cron (Recommended)
 
 1. Open your crontab:
 ```bash
@@ -120,9 +128,14 @@ pwd
 
 3. Save and exit (in nano: Ctrl+X, then Y, then Enter)
 
-### Option 2: Using launchd (macOS native)
+### macOS: Using launchd (Alternative)
 
 Create a launch agent file. I can help you set this up if you prefer this method!
+
+### Automated Setup Script
+
+- **macOS/Linux:** Run `./setup_scheduler.sh`
+- **Windows:** Run `setup_scheduler.bat` as Administrator
 
 ## Logs
 

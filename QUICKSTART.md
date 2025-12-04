@@ -2,6 +2,10 @@
 
 Get the Alta parking bot running in 5 minutes!
 
+> **Windows Users:** See [WINDOWS_SETUP.md](WINDOWS_SETUP.md) for Windows-specific instructions.
+>
+> **macOS/Linux Users:** Continue below.
+
 ## Step 1: Install Dependencies
 
 ```bash
