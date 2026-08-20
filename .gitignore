@@ -19,3 +19,8 @@ ENV/
 
 # macOS
 .DS_Store
+
+# skill workspaces
+workspace/
+*/workspace/
+__pycache__/
