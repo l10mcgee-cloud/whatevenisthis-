@@ -135,23 +135,38 @@ def body_size(all_lines):
 
 
 BYLINE_RE = re.compile(
-    r"^\s*(words?|story|text|photos?|images?|photography)\s+(by|:)\s*(.+)$|^\s*by\s+(.+)$",
+    r"^\s*((?:words?|story|text|photos?|images?|photography)"
+    r"(?:\s*(?:&|and|\+|,)\s*(?:words?|story|text|photos?|images?|photography))*)"
+    r"\s+(by|:)\s*(.+)$"
+    r"|^\s*by\s+(.+)$",
     re.IGNORECASE,
 )
 
 
 def parse_byline(text):
+    """Read a byline off a line, or return None.
+
+    The bare `by NAME` form has to be held to a name test. Magazine copy is set
+    justified and wraps anywhere, so a body line beginning "by land area in the
+    world..." matches the pattern perfectly and is not a byline. A labelled form
+    ("words & photos by X") is unambiguous enough to trust on its own.
+    """
     m = BYLINE_RE.match(text.strip())
     if not m:
         return None
     if m.group(3):
         kind = m.group(1).lower()
         who = m.group(3)
+        labelled = True
     else:
         kind = "words"
         who = m.group(4)
+        labelled = False
+    who = bcm_text.clean_paragraph(who).strip(" .,")
+    if not labelled and not bcm_text._looks_like_name(who):
+        return None
     role = "photos" if kind.startswith(("photo", "image")) else "words"
-    return {"role": role, "name": bcm_text.clean_paragraph(who).strip(" .,")}
+    return {"role": role, "name": who}
 
 
 def classify(lines, body_pt, page_index, page_rect):
@@ -176,7 +191,10 @@ def classify(lines, body_pt, page_index, page_rect):
             ln["role"] = "hed"
         elif ln["all_italic"] and size > body_pt * 1.05:
             ln["role"] = "dek"
-        elif size >= body_pt * 1.4 and len(text) > 25:
+        elif size >= body_pt * 1.4 and len(text) > 12:
+            # Display type well above body size is a pull quote or display line.
+            # The length floor only keeps stray large glyphs (a drop cap, a folio
+            # set big) out; it must stay well under a short pull-quote line.
             ln["role"] = "pullquote"
         elif size <= body_pt * 0.88:
             ln["role"] = "caption"
@@ -213,6 +231,40 @@ def group_runs(lines):
                          "y0": ln["y0"], "y1": ln["y1"], "lines": [ln],
                          **({"byline": ln["byline"]} if "byline" in ln else {})})
     return runs
+
+
+SENTENCE_END = ".!?\u2746"
+
+
+def ends_a_paragraph(text):
+    """True when text reads as a finished paragraph.
+
+    A paragraph that runs past the bottom of a column continues in the next one,
+    so the last character is the tell: a sentence-final mark ends a paragraph, and
+    anything else — a comma, a hyphen, a bare word — means the sentence is still
+    going. Closing quotes and brackets are transparent; what matters is what sits
+    under them.
+    """
+    stripped = (text or "").rstrip()
+    while stripped and stripped[-1] in "\u201d\u2019\")]":
+        stripped = stripped[:-1].rstrip()
+    return bool(stripped) and stripped[-1] in SENTENCE_END
+
+
+def merge_continuations(blocks):
+    """Rejoin body paragraphs split across a column or page break."""
+    merged = []
+    for block in blocks:
+        if (merged and merged[-1]["type"] == "body" and block["type"] == "body"
+                and not ends_a_paragraph(merged[-1]["text"])):
+            prev = merged[-1]
+            if prev["text"].rstrip().endswith("-"):
+                prev["text"] = prev["text"].rstrip()[:-1] + block["text"].lstrip()
+            else:
+                prev["text"] = prev["text"].rstrip() + " " + block["text"].lstrip()
+            continue
+        merged.append(block)
+    return merged
 
 
 def extract_images(pymupdf, doc, outdir, min_px=200):
@@ -353,8 +405,12 @@ def main():
             elif role == "byline":
                 bylines.append(run["byline"])
             elif role in ("body", "subhead", "pullquote", "caption"):
+                # Keep any end mark for now. Stripping here would delete the one
+                # the last paragraph needs before there is any way to know which
+                # paragraph is last.
                 blocks.append({"type": role, "page": pno,
-                               "text": bcm_text.clean_paragraph(run["text"])})
+                               "text": bcm_text.clean_paragraph(run["text"],
+                                                                end_mark=True)})
 
     article = {
         "source_pdf": os.path.abspath(args.pdf),
@@ -367,8 +423,14 @@ def main():
         "images": images,
     }
 
-    # The end mark belongs on the last body block only.
+    article["blocks"] = merge_continuations(article["blocks"])
+
+    # The end mark belongs on the last body block and nowhere else.
     body_blocks = [b for b in article["blocks"] if b["type"] == "body"]
+    for block in body_blocks[:-1]:
+        for mark in bcm_text.PRINT_END_MARKS + bcm_text.WEB_END_MARK:
+            block["text"] = block["text"].replace(mark, "")
+        block["text"] = block["text"].strip()
     if body_blocks:
         last = body_blocks[-1]
         last["text"] = bcm_text.convert_end_mark(last["text"])

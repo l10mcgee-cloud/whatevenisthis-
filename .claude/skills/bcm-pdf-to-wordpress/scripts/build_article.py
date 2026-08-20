@@ -26,8 +26,15 @@ END_MARK = "❆"
 
 
 def esc(text):
-    """Escape markup characters, leaving typographic characters as UTF-8."""
-    return html.escape(text or "", quote=False)
+    """Escape markup characters, leaving typographic characters as UTF-8.
+
+    Body text may carry *asterisk* spans for the italics print sets in roman
+    copy — an interior thought, a ship name, a foreign word. They are converted
+    after escaping so the markup they produce is the only markup in the string.
+    """
+    out = html.escape(text or "", quote=False)
+    out = re.sub(r"\*([^*\n]+)\*", r"<em>\1</em>", out)
+    return out
 
 
 def esc_attr(text):
@@ -64,7 +71,7 @@ def body_block(text, drop_cap=False, bold_words=0):
 def image_block(image):
     """An image block. Requires a real attachment id and url once published."""
     media_id = image.get("id")
-    url = image.get("url") or image.get("file")
+    url = image.get("url") or image.get("source") or image.get("file") or ""
     caption = (image.get("caption") or "").strip()
     credit = (image.get("credit") or "").strip()
     alt = image.get("alt") or ""
@@ -266,6 +273,38 @@ hr{border:0;border-top:1px solid #ddd;margin:2.5rem 0}
 """
 
 
+def embed_images(html_text, workspace, max_px=1200, quality=80):
+    """Rewrite local image srcs as data URIs so the preview is one portable file.
+
+    Downscaled, because a proof only has to show what the picture is and the
+    print rasters are far larger than any screen needs.
+    """
+    try:
+        from PIL import Image
+    except ImportError:
+        return html_text
+    import base64, io
+
+    cache = {}
+
+    def swap(m):
+        src = m.group(1)
+        if src.startswith(("http://", "https://", "data:")) or not src:
+            return m.group(0)
+        if src not in cache:
+            path = src if os.path.isabs(src) else os.path.join(workspace, src)
+            if not os.path.exists(path):
+                return m.group(0)
+            im = Image.open(path).convert("RGB")
+            im.thumbnail((max_px, max_px))
+            buf = io.BytesIO()
+            im.save(buf, "JPEG", quality=quality)
+            cache[src] = "data:image/jpeg;base64," + base64.b64encode(buf.getvalue()).decode()
+        return f'src="{cache[src]}"'
+
+    return re.sub(r'src="([^"]*)"', swap, html_text)
+
+
 def preview(content, article, plan, problems):
     title = plan.get("seo", {}).get("title") or plan.get("title") or article.get("hed") or "Untitled"
     banner = ""
@@ -283,6 +322,8 @@ def main():
     ap.add_argument("article_json")
     ap.add_argument("--plan", help="JSON of editorial decisions (type, seo, images, issue)")
     ap.add_argument("--out", default=".")
+    ap.add_argument("--embed-images", action="store_true",
+                    help="inline the photos in preview.html so it is one portable file")
     args = ap.parse_args()
 
     with open(args.article_json) as fh:
@@ -298,8 +339,11 @@ def main():
 
     with open(os.path.join(args.out, "content.html"), "w") as fh:
         fh.write(content)
+    page = preview(content, article, plan, problems)
+    if args.embed_images:
+        page = embed_images(page, args.out)
     with open(os.path.join(args.out, "preview.html"), "w") as fh:
-        fh.write(preview(content, article, plan, problems))
+        fh.write(page)
 
     dek = plan.get("dek") or article.get("dek") or ""
     seo = plan.get("seo", {})
