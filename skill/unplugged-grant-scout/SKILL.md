@@ -12,9 +12,31 @@ You find grant opportunities for Unplugged Wellness and tell Liam McGee which on
 | File | ID | Purpose |
 |---|---|---|
 | Unplugged Grant Brief (Scout Copy) | `12qrqGy-38vUdWAOAvhRb0QURZChID0mjDVc4HXnCTAU` | What's true about Unplugged. Read every run. |
-| Unplugged Grant Tracker (Google Sheet) | `1FwD1bsB6u0B7AizhZjHLR7bzSMOby7BTV2baOPaXPko` | Running list of every funder found. Liam edits it too. |
+| Unplugged Grant Tracker (Google Sheet) | `1-MJZutCakC7ey-h26AZC95Rbv_4lM1gOZQCWLjVNc6Q` | The live tracker. Every funder found goes here. Liam edits it too. |
+| Test-run snapshot, Oct. 15, 2026 (Google Sheet) | `1FwD1bsB6u0B7AizhZjHLR7bzSMOby7BTV2baOPaXPko` | Read-only seed data. Also in the repo at `tracker/test-run-2026-10-15.csv`. Don't write to it. |
 
-If an ID fails (the file was moved to the shared drive and copied rather than moved), search Drive by title. Save new monthly reports in the same folder as the tracker.
+Tracker link: https://docs.google.com/spreadsheets/d/1-MJZutCakC7ey-h26AZC95Rbv_4lM1gOZQCWLjVNc6Q/edit
+
+Writing to the tracker needs the **Google Sheets** connector. Google Drive alone can read it but can't change cells. If an ID fails, search Drive by title. Save new monthly reports in the same folder as the tracker.
+
+## Step 0: Set up the tracker (only if it's empty or unformatted)
+
+Read the tracker's first tab (`get_values` on `A1:R`). If row 1 doesn't match the columns in Step 5, set it up before anything else:
+
+1. Rename the first tab to `Tracker`.
+2. Write the 18 headers in row 1, in the Step 5 order.
+3. Seed rows 2 onward from the test-run snapshot (the Sheet above or the repo CSV), keeping every value as is. Write with `RAW` so "$500-$10,000" and "[TK]" stay text. Exception: in Deadline (G), Date found (N) and Last checked (O), write exact dates as real dates (`USER_ENTERED`, format `yyyy-mm-dd`) so the deadline warning works. Fuzzy deadlines ("~Mar. 2027," "Rolling") stay text.
+4. Format, in one batch:
+   - Header row: bold, white text on dark green (`#1F4E3D`), frozen, wrap, vertically centered, height 40 px.
+   - Freeze column D (Funder) so the name stays visible while scrolling.
+   - Basic filter on the full data range.
+   - Column widths (px): Priority 70, Fit 130, Level 150, Funder 220, Program 230, Award range 170, Deadline 170, Deadline status 160, Why it fits 280, What we'd fund 260, Red flags 280, Effort 90, Link 220, Date found 105, Last checked 105, Status 110, Owner 100, Notes 280.
+   - Wrap text in columns I, J, K and R; clip column M (Link). Align all data to the top.
+   - Dropdowns (data validation, show as chips, reject other values): Priority `1, 2, 3`; Fit `Go, Go with caveats, Watch, No-go`; Effort `Low, Medium, High`; Status `New, Reviewing, Drafting, Submitted, Awarded, Declined, Passed, Watch`.
+   - Conditional formatting on the whole row from the Fit column: Go light green `#D9EAD3`; Go with caveats light yellow `#FFF2CC`; Watch light blue `#DDEBF7`; No-go light gray `#EFEFEF` with gray text `#666666`.
+   - Conditional formatting on Deadline (G): red text and bold when the cell is a date within 30 days of today.
+   - Sort rows by Priority ascending, then Deadline.
+5. Read the sheet back and confirm headers, row count and formatting before moving on.
 
 ## Step 1: Read the brief
 
@@ -59,7 +81,7 @@ Priority: 1 = apply in the next 60 days, 2 = plan for this year, 3 = watch or re
 
 Columns, in order: Priority, Fit, Level, Funder, Program, Award range, Deadline, Deadline status, Why it fits Unplugged, What we'd fund, Red flags / eligibility, Effort, Link, Date found, Last checked, Status, Owner, Notes.
 
-- **If Google Sheets editing tools are available:** append one row per new funder, sorted under the existing rows. For known funders, update `Deadline`, `Deadline status`, `Last checked` and `Fit` if they changed, and append to `Notes` with a date stamp. Never overwrite `Status`, `Owner` or Liam's notes. Liam owns those columns. New rows get Status "New."
+- **If Google Sheets editing tools are available:** append one row per new funder at the bottom of the `Tracker` tab, then re-sort by Priority and Deadline. Read the sheet first and match on Funder + Program so the same grant never appears twice. New rows inherit the formatting and dropdowns. For known funders, update `Deadline`, `Deadline status`, `Last checked` and `Fit` if they changed, and append to `Notes` with a date stamp. Never overwrite `Status`, `Owner` or Liam's notes. Liam owns those columns. New rows get Status "New."
 - **If only Google Drive is available:** do not create a second tracker. Put the new rows in the monthly report as a table Liam can paste into the tracker, and say at the top of the report that the Google Sheets connector was off.
 
 ## Step 6: Write the report

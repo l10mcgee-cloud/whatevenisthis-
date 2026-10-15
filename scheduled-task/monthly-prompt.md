@@ -13,6 +13,6 @@ Run the monthly Unplugged Grant Scout for Liam McGee (board member and co-writer
 
 Key files (Google Drive):
 - Unplugged Grant Brief (Scout Copy), Doc ID 12qrqGy-38vUdWAOAvhRb0QURZChID0mjDVc4HXnCTAU
-- Unplugged Grant Tracker, Sheet ID 1FwD1bsB6u0B7AizhZjHLR7bzSMOby7BTV2baOPaXPko
+- Unplugged Grant Tracker, Sheet ID 1-MJZutCakC7ey-h26AZC95Rbv_4lM1gOZQCWLjVNc6Q (needs the Google Sheets connector to write)
 
-Steps: read the brief, read the tracker, search city, county, Utah and national funders, run the fit check, update the tracker (never overwrite Status, Owner or Liam's notes), then create "Unplugged Grant Scout Report: <Month YYYY>" in the tracker's folder. Finish with a one-line summary: new leads, number of Go ratings, nearest deadline and the report link.
+Steps: set up and format the tracker if it's empty (Step 0 of the skill), read the brief, read the tracker, search city, county, Utah and national funders, run the fit check, update the tracker (never overwrite Status, Owner or Liam's notes), then create "Unplugged Grant Scout Report: <Month YYYY>" in the tracker's folder. Finish with a one-line summary: new leads, number of Go ratings, nearest deadline and the report link.

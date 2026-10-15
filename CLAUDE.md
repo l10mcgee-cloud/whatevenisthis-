@@ -8,7 +8,8 @@ This repo holds the grant scout for Unplugged Wellness, a Salt Lake City 501(c)(
 - `tracker/`: CSV snapshots of the tracker. The live tracker is the Google Sheet, not these files.
 
 ## Live files (Google Drive)
-- Unplugged Grant Tracker (Sheet): 1FwD1bsB6u0B7AizhZjHLR7bzSMOby7BTV2baOPaXPko
+- Unplugged Grant Tracker (Sheet, live): 1-MJZutCakC7ey-h26AZC95Rbv_4lM1gOZQCWLjVNc6Q
+- Test-run snapshot (Sheet, read-only): 1FwD1bsB6u0B7AizhZjHLR7bzSMOby7BTV2baOPaXPko
 - Unplugged Grant Brief (Scout Copy) (Doc): 12qrqGy-38vUdWAOAvhRb0QURZChID0mjDVc4HXnCTAU
 
 ## Writing style
